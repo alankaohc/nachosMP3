@@ -48,6 +48,8 @@ void Alarm::CallBack() {
     MachineStatus status = interrupt->getStatus();
 
     if (status != IdleMode) {
+       
+        DEBUG(dbgTraCode, "-->alarm callback()");
         interrupt->YieldOnReturn();
     }
 }

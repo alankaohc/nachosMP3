@@ -78,7 +78,7 @@ void Semaphore::P() {
 
     // disable interrupts
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
-
+    DEBUG(dbgTraCode, "In Semaphore::P(), value = " << value);
     while (value == 0) {               // semaphore not available
         queue->Append(currentThread);  // so go to sleep
         currentThread->Sleep(FALSE);

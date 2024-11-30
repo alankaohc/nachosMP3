@@ -1,5 +1,5 @@
 #include "syscall.h"
-
+// hw3t1.c
 int
 main()
 {
@@ -8,5 +8,5 @@ main()
 		PrintInt(1);
 		for (i=0; i<100; ++i);
 	}
-	Exit(1);
+	//Exit(1);
 }

@@ -310,17 +310,17 @@ SWITCH
 */
 _ThreadRoot:	
 ThreadRoot:
-        pushl   %ebp
-        movl    %esp,%ebp
+        #pushl   %ebp
+        #movl    %esp,%ebp
         pushl   InitialArg
         call    *StartupPC
         call    *InitialPC
-        call    *WhenDonePC
+        #call    *WhenDonePC
 
         # NOT REACHED
-        movl    %ebp,%esp
-        popl    %ebp
-        ret
+        #movl    %ebp,%esp
+        #popl    %ebp
+        #ret
 
 
 
@@ -341,7 +341,7 @@ ThreadRoot:
 	.globl  _SWITCH
 _SWITCH:		
 SWITCH:
-        movl    %eax,_eax_save          # save the value of eax
+        #movl    %eax,_eax_save          # save the value of eax
         movl    4(%esp),%eax            # move pointer to t1 into eax
         movl    %ebx,_EBX(%eax)         # save registers
         movl    %ecx,_ECX(%eax)
@@ -350,15 +350,15 @@ SWITCH:
         movl    %edi,_EDI(%eax)
         movl    %ebp,_EBP(%eax)
         movl    %esp,_ESP(%eax)         # save stack pointer
-        movl    _eax_save,%ebx          # get the saved value of eax
-        movl    %ebx,_EAX(%eax)         # store it
-        movl    0(%esp),%ebx            # get return address from stack into ebx
-        movl    %ebx,_PC(%eax)          # save it into the pc storage
+        #movl    _eax_save,%ebx          # get the saved value of eax
+        #movl    %ebx,_EAX(%eax)         # store it
+        #movl    0(%esp),%ebx            # get return address from stack into ebx
+        #movl    %ebx,_PC(%eax)          # save it into the pc storage
 
         movl    8(%esp),%eax            # move pointer to t2 into eax
 
-        movl    _EAX(%eax),%ebx         # get new value for eax into ebx
-        movl    %ebx,_eax_save          # save it
+        #movl    _EAX(%eax),%ebx         # get new value for eax into ebx
+        #movl    %ebx,_eax_save          # save it
         movl    _EBX(%eax),%ebx         # retore old registers
         movl    _ECX(%eax),%ecx
         movl    _EDX(%eax),%edx
@@ -366,9 +366,9 @@ SWITCH:
         movl    _EDI(%eax),%edi
         movl    _EBP(%eax),%ebp
         movl    _ESP(%eax),%esp         # restore stack pointer
-        movl    _PC(%eax),%eax          # restore return address into eax
-        movl    %eax,4(%esp)            # copy over the ret address on the stack
-        movl    _eax_save,%eax
+        #movl    _PC(%eax),%eax          # restore return address into eax
+        #movl    %eax,4(%esp)            # copy over the ret address on the stack
+        #movl    _eax_save,%eax
 
         ret
 

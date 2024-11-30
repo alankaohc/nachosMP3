@@ -102,7 +102,9 @@ void SynchConsoleOutput::PutInt(int value) {
     int idx = 0;
     // sprintf(str, "%d\n\0", value);  the true one
     sprintf(str, "%d\n\0", value);  // simply for trace code
+    DEBUG(dbgTraCode, "In SynchConsoleOutput::PutChar, Before lock acquire");
     lock->Acquire();
+    DEBUG(dbgTraCode, "In SynchConsoleOutput::PutChar, After lock acquire");
     do {
         DEBUG(dbgTraCode, "In SynchConsoleOutput::PutChar, into consoleOutput->PutChar, " << kernel->stats->totalTicks);
         consoleOutput->PutChar(str[idx]);
