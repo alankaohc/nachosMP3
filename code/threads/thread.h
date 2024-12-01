@@ -83,6 +83,7 @@ class Thread {
 
    public:
     Thread(char *debugName, int threadID);  // initialize a Thread
+     Thread(char *debugName, int threadID, int priority);  // initialize a Thread
     ~Thread();                              // deallocate a Thread
                                             // NOTE -- thread being deleted
                                             // must not be running when delete
@@ -135,6 +136,7 @@ class Thread {
     void RestoreUserState();  // restore user-level register state
 
     AddrSpace *space;  // User code this thread is running.
+    int priority;
 };
 
 // external function, dummy routine whose sole job is to call Thread::Print

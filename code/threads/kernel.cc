@@ -56,8 +56,9 @@ Kernel::Kernel(int argc, char **argv) {
         } else if (strcmp(argv[i], "-ep") == 0) {
             execfile[++execfileNum] = argv[++i];
             cout << execfile[execfileNum] << "\n";
-            priority = atoi(argv[++i]);
-            cout << "priority: " << priority << "\n";
+            int priority = atoi(argv[++i]);
+            execPriority[execfileNum] = priority;
+            cout << "priority: " <<  execPriority[execfileNum] << "\n";
             
         } else if (strcmp(argv[i], "-ci") == 0) {
             ASSERT(i + 1 < argc);
@@ -267,15 +268,15 @@ void ForkExecute(Thread *t) {
 
 void Kernel::ExecAll() {
     for (int i = 1; i <= execfileNum; i++) {
-        int a = Exec(execfile[i]);
+        int a = Exec(execfile[i], execPriority[i]);
     }
     //cout << "\n\nexecAll\n\n";
     currentThread->Finish();
     // Kernel::Exec();
 }
 
-int Kernel::Exec(char *name) {
-    t[threadNum] = new Thread(name, threadNum);
+int Kernel::Exec(char *name, int priority) {
+    t[threadNum] = new Thread(name, threadNum, priority);
     t[threadNum]->setIsExec();
     t[threadNum]->space = new AddrSpace(usedPhysPages, &numFreePhysPages);
     t[threadNum]->Fork((VoidFunctionPtr)&ForkExecute, (void *)t[threadNum]);

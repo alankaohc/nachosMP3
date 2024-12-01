@@ -30,8 +30,29 @@
 //	Initially, no ready threads.
 //----------------------------------------------------------------------
 
+
+static int
+L2Compare(Thread *x, Thread *y) {
+    if (x->priority > y->priority) {
+        return -1;
+    } else if (x->priority < y->priority) {
+        return 1;
+    } else {
+        // priority一樣，比ID
+        if (x->getID() < y->getID()) {
+            return -1;
+        } 
+        return 1;
+    }
+}
+
+
+
 Scheduler::Scheduler() {
     readyList = new List<Thread *>;
+    L2 = new SortedList<Thread *>(L2Compare);
+    
+    
     toBeDestroyed = NULL;
 }
 
@@ -57,7 +78,13 @@ void Scheduler::ReadyToRun(Thread *thread) {
     DEBUG(dbgThread, "Putting thread on ready list: " << thread->getName());
     // cout << "Putting thread on ready list: " << thread->getName() << endl ;
     thread->setStatus(READY);
-    readyList->Append(thread);
+    if (thread->priority >= 0 && thread->priority <= 49 ) {
+        readyList->Append(thread);
+    }
+    if (thread->priority >= 50 && thread->priority <= 99 ) {
+        L2->Insert(thread);
+    }
+    
 }
 
 //----------------------------------------------------------------------
@@ -71,13 +98,18 @@ void Scheduler::ReadyToRun(Thread *thread) {
 Thread *
 Scheduler::FindNextToRun() {
     ASSERT(kernel->interrupt->getLevel() == IntOff);
-
-    if (readyList->IsEmpty()) {
-        return NULL;
-    } else {
+    
+    if (!L2->IsEmpty()) {
+        Thread* tmp = L2->RemoveFront();
+        //std::cout << "--> priority: " << tmp->priority << "\n";
+        return tmp;
+    } else if (!readyList->IsEmpty()) {
         return readyList->RemoveFront();
+    } else {
+        return NULL;
     }
 }
+
 
 //----------------------------------------------------------------------
 // Scheduler::Run

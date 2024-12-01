@@ -49,6 +49,22 @@ Thread::Thread(char *threadName, int threadID) {
     space = NULL;
 }
 
+Thread::Thread(char *threadName, int threadID, int priority_) {
+    priority = priority_;
+    ID = threadID;
+    name = threadName;
+    isExec = false;
+    stackTop = NULL;
+    stack = NULL;
+    status = JUST_CREATED;
+    for (int i = 0; i < MachineStateSize; i++) {
+        machineState[i] = NULL;  // not strictly necessary, since
+                                 // new thread ignores contents
+                                 // of machine registers
+    }
+    space = NULL;
+}
+
 //----------------------------------------------------------------------
 // Thread::~Thread
 // 	De-allocate a thread.

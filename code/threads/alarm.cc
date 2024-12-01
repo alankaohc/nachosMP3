@@ -48,8 +48,16 @@ void Alarm::CallBack() {
     MachineStatus status = interrupt->getStatus();
 
     if (status != IdleMode) {
-       
         DEBUG(dbgTraCode, "-->alarm callback()");
-        interrupt->YieldOnReturn();
+        if (kernel->currentThread->priority >= 0 && kernel->currentThread->priority <= 49) {
+            // L3
+            interrupt->YieldOnReturn();
+        } else if (kernel->currentThread->priority >= 50 && kernel->currentThread->priority <= 99) {
+            // L2
+        } else if (kernel->currentThread->priority >= 50 && kernel->currentThread->priority <= 99) {
+            // L1
+        } else {
+            std::cout << "priority error" << std::endl;
+        }
     }
 }
