@@ -94,6 +94,8 @@ void Scheduler::ReadyToRun(Thread *thread) {
     // cout << "Putting thread on ready list: " << thread->getName() << endl ;
     thread->setStatus(READY);
 
+    thread->startWaitTime = kernel->stats->totalTicks;
+
     if (thread->priority >= 0 && thread->priority <= 49 ) {
         DEBUG(dbgZ, "[A] Tick ["<< kernel->stats->totalTicks <<"]: Thread [" << thread->getID() << "] is inserted into queue L[3]");
         readyList->Append(thread);
@@ -198,9 +200,9 @@ void Scheduler::Run(Thread *nextThread, bool finishing) {
     DEBUG(dbgZ, "[E] Tick ["<< kernel->stats->totalTicks <<"]: Thread ["<< nextThread->getID() 
     <<"] is now selected for execution, thread ["<< oldThread->getID() 
     <<"] is replaced, and it has executed ["<< execTime << "] ticks");
-    
-    nextThread->initialTick = kernel->stats->totalTicks;
 
+    nextThread->initialTick = kernel->stats->totalTicks;
+    nextThread->waitTime = 0.0;
     SWITCH(oldThread, nextThread);
     //oldThread->initialTick = kernel->stats->totalTicks;
     // we're back, running oldThread

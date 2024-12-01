@@ -68,6 +68,8 @@ Thread::Thread(char *threadName, int threadID, int priority_) {
     predictTime = 500.0;
     remainingBurstTime = 0.0;
     lastBurstTime = 0.0;
+    startWaitTime = 0.0;
+    waitTime = 0.0;
 
 }
 

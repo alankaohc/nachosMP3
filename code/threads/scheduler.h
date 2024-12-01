@@ -33,12 +33,12 @@ class Scheduler {
     void Print();               // Print contents of ready list
 
     // SelfTest for scheduler is implemented in class Thread
-
-   private:
     List<Thread*>* readyList;  // queue of threads that are ready to run,
                                // but not running
     SortedList<Thread*>* L2;
     SortedList<Thread*>* L1;
+   private:
+    
 
     Thread* toBeDestroyed;     // finishing thread to be destroyed
                                // by the next thread that runs
