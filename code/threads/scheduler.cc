@@ -46,11 +46,26 @@ L2Compare(Thread *x, Thread *y) {
     }
 }
 
+static int
+L1Compare(Thread *x, Thread *y) {
+    if (x->remainingBurstTime < y->remainingBurstTime) {
+        return -1;
+    } else if (x->remainingBurstTime > y->remainingBurstTime) {
+        return 1;
+    } else {
+        // priority一樣，比ID
+        if (x->getID() < y->getID()) {
+            return -1;
+        } 
+        return 1;
+    }
+}
 
 
 Scheduler::Scheduler() {
     readyList = new List<Thread *>;
     L2 = new SortedList<Thread *>(L2Compare);
+    L1 = new SortedList<Thread *>(L1Compare);
     
     
     toBeDestroyed = NULL;
@@ -81,8 +96,13 @@ void Scheduler::ReadyToRun(Thread *thread) {
     if (thread->priority >= 0 && thread->priority <= 49 ) {
         readyList->Append(thread);
     }
-    if (thread->priority >= 50 && thread->priority <= 99 ) {
+    else if (thread->priority >= 50 && thread->priority <= 99 ) {
         L2->Insert(thread);
+    }
+    else if (thread->priority >= 100 && thread->priority <= 149 ) {
+        L1->Insert(thread);
+    } else {
+        std::cout << "ReadyToRun error" << std::endl; 
     }
     
 }
@@ -98,8 +118,11 @@ void Scheduler::ReadyToRun(Thread *thread) {
 Thread *
 Scheduler::FindNextToRun() {
     ASSERT(kernel->interrupt->getLevel() == IntOff);
-    
-    if (!L2->IsEmpty()) {
+    if (!L1->IsEmpty()) {
+        Thread* tmp = L1->RemoveFront();
+        return tmp;
+    }
+    else if (!L2->IsEmpty()) {
         Thread* tmp = L2->RemoveFront();
         //std::cout << "--> priority: " << tmp->priority << "\n";
         return tmp;
@@ -155,9 +178,9 @@ void Scheduler::Run(Thread *nextThread, bool finishing) {
     // in switch.s.  You may have to think
     // a bit to figure out what happens after this, both from the point
     // of view of the thread and from the perspective of the "outside world".
-
+    nextThread->initialTick = kernel->stats->totalTicks;
     SWITCH(oldThread, nextThread);
-
+    //oldThread->initialTick = kernel->stats->totalTicks;
     // we're back, running oldThread
 
     // interrupts are off when we return from switch!

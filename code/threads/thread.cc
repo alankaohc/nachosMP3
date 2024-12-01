@@ -50,7 +50,6 @@ Thread::Thread(char *threadName, int threadID) {
 }
 
 Thread::Thread(char *threadName, int threadID, int priority_) {
-    priority = priority_;
     ID = threadID;
     name = threadName;
     isExec = false;
@@ -63,6 +62,12 @@ Thread::Thread(char *threadName, int threadID, int priority_) {
                                  // of machine registers
     }
     space = NULL;
+    priority = priority_;
+    initialTick = 0.0;
+    burstTime = 0.0;
+    predictTime = 500.0;
+    remainingBurstTime = 0.0;
+
 }
 
 //----------------------------------------------------------------------
@@ -220,11 +225,30 @@ void Thread::Yield() {
     ASSERT(this == kernel->currentThread);
 
     DEBUG(dbgThread, "Yielding thread: " << name);
-
-    nextThread = kernel->scheduler->FindNextToRun();
-    if (nextThread != NULL) {
+    
+    // L1 : We should put current thread into queue, in order to compare with thread in queue.
+    if (this->priority >= 100 && this->priority <= 149) {
+        RecalculateBurstTime_Yield();
+        remainingBurstTime = predictTime - burstTime;
+        // std::cout << "-->predictTime = " << predictTime << std::endl;
+        // std::cout << "-->burstTime = " << burstTime << std::endl;
+        // std::cout << "-->initialTick = " << initialTick << std::endl;
+        // std::cout << "-->remainingBurstTime = " << remainingBurstTime << std::endl;
+        // if (remainingBurstTime < 0) {
+        //     std::cout << "remainingBurstTime < 0.0" << std::endl;
+        // }
         kernel->scheduler->ReadyToRun(this);
-        kernel->scheduler->Run(nextThread, FALSE);
+        nextThread = kernel->scheduler->FindNextToRun();
+        if (nextThread != NULL) {
+            kernel->scheduler->Run(nextThread, FALSE);
+        }
+    }
+    else {
+        nextThread = kernel->scheduler->FindNextToRun();
+        if (nextThread != NULL) {
+            kernel->scheduler->ReadyToRun(this);
+            kernel->scheduler->Run(nextThread, FALSE);
+        }
     }
     (void)kernel->interrupt->SetLevel(oldLevel);
 }
@@ -259,6 +283,12 @@ void Thread::Sleep(bool finishing) {
     DEBUG(dbgTraCode, "In Thread::Sleep, Sleeping thread: " << name << ", " << kernel->stats->totalTicks);
 
     status = BLOCKED;
+
+    RecalculateBurstTime_Sleep();
+    calculatePredictTime(); 
+    remainingBurstTime = predictTime;
+    burstTime = 0.0;
+
     // cout << "debug Thread::Sleep " << name << "wait for Idle\n";
     while ((nextThread = kernel->scheduler->FindNextToRun()) == NULL) {
         kernel->interrupt->Idle();  // no one to run, wait for an interrupt
@@ -434,4 +464,31 @@ void Thread::SelfTest() {
     t->Fork((VoidFunctionPtr)SimpleThread, (void *)1);
     kernel->currentThread->Yield();
     SimpleThread(0);
+}
+
+
+// When Thread::Sleep(), running -> waiting
+void Thread::calculatePredictTime() {
+    double newPredictTime = (double)(predictTime/2) + (double)(burstTime/2);
+    //DEBUG(dbgExpr, "[D] Tick ["<< kernel->stats->totalTicks <<"]: Thread [" << ID << "] update approximate burst time, from: ["<< predictTime <<"], add ["<< burstTime <<"], to ["<< newPredictTime <<"]");
+    predictTime = newPredictTime;
+    //std::cout << "[" << this->getID() << "]" <<  " predictTime: " << predictTime << std::endl;
+    //lastExecTime = burstTime;
+    //burstTime = 0.0;
+}
+
+// When Thread::Sleep(), running -> waiting
+void Thread::RecalculateBurstTime_Sleep() {
+    double advanceTick = (double)(kernel->stats->totalTicks - initialTick);
+    //std::cout << "-->advances tick: " << advanceTick << std::endl;
+    burstTime += advanceTick;
+    //std::cout << "-->sleep burstTime: " << burstTime << std::endl;
+}
+
+// When Thread::Yield(), running -> ready
+void Thread::RecalculateBurstTime_Yield() {
+    double advanceTick = (double)(kernel->stats->totalTicks - initialTick);
+    //std::cout << "-->advances tick: " << advanceTick << std::endl;
+    burstTime += advanceTick;
+    //std::cout << "-->yield burstTime: " << burstTime << std::endl;
 }

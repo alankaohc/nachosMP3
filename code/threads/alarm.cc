@@ -51,11 +51,15 @@ void Alarm::CallBack() {
         DEBUG(dbgTraCode, "-->alarm callback()");
         if (kernel->currentThread->priority >= 0 && kernel->currentThread->priority <= 49) {
             // L3
+            //std::cout << "priority L3" << std::endl;
             interrupt->YieldOnReturn();
         } else if (kernel->currentThread->priority >= 50 && kernel->currentThread->priority <= 99) {
             // L2
-        } else if (kernel->currentThread->priority >= 50 && kernel->currentThread->priority <= 99) {
+            //std::cout << "priority L2" << std::endl;
+        } else if (kernel->currentThread->priority >= 100 && kernel->currentThread->priority <= 149) {
             // L1
+            //std::cout << "priority L1" << std::endl;
+            interrupt->YieldOnReturn();
         } else {
             std::cout << "priority error" << std::endl;
         }

@@ -136,7 +136,18 @@ class Thread {
     void RestoreUserState();  // restore user-level register state
 
     AddrSpace *space;  // User code this thread is running.
+    
+    // 新加的
+   public:
     int priority;
+    double initialTick;
+    double burstTime;
+    double predictTime;
+    double remainingBurstTime;
+    void calculatePredictTime();
+    void RecalculateBurstTime_Sleep();
+    void RecalculateBurstTime_Yield();
+    
 };
 
 // external function, dummy routine whose sole job is to call Thread::Print
