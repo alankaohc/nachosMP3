@@ -144,6 +144,7 @@ class Thread {
     double burstTime;
     double predictTime;
     double remainingBurstTime;
+    double lastBurstTime;
     void calculatePredictTime();
     void RecalculateBurstTime_Sleep();
     void RecalculateBurstTime_Yield();

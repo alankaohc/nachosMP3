@@ -93,13 +93,17 @@ void Scheduler::ReadyToRun(Thread *thread) {
     DEBUG(dbgThread, "Putting thread on ready list: " << thread->getName());
     // cout << "Putting thread on ready list: " << thread->getName() << endl ;
     thread->setStatus(READY);
+
     if (thread->priority >= 0 && thread->priority <= 49 ) {
+        DEBUG(dbgZ, "[A] Tick ["<< kernel->stats->totalTicks <<"]: Thread [" << thread->getID() << "] is inserted into queue L[3]");
         readyList->Append(thread);
     }
     else if (thread->priority >= 50 && thread->priority <= 99 ) {
+        DEBUG(dbgZ, "[A] Tick ["<< kernel->stats->totalTicks <<"]: Thread [" << thread->getID() << "] is inserted into queue L[2]");
         L2->Insert(thread);
     }
     else if (thread->priority >= 100 && thread->priority <= 149 ) {
+        DEBUG(dbgZ, "[A] Tick ["<< kernel->stats->totalTicks <<"]: Thread [" << thread->getID() << "] is inserted into queue L[1]");
         L1->Insert(thread);
     } else {
         std::cout << "ReadyToRun error" << std::endl; 
@@ -119,15 +123,18 @@ Thread *
 Scheduler::FindNextToRun() {
     ASSERT(kernel->interrupt->getLevel() == IntOff);
     if (!L1->IsEmpty()) {
-        Thread* tmp = L1->RemoveFront();
-        return tmp;
+        Thread* thread = L1->RemoveFront();
+        DEBUG(dbgZ, "[B] Tick ["<< kernel->stats->totalTicks <<"]: Thread [" << thread->getID() << "] is removed from queue L[1]");
+        return thread;
     }
     else if (!L2->IsEmpty()) {
-        Thread* tmp = L2->RemoveFront();
-        //std::cout << "--> priority: " << tmp->priority << "\n";
-        return tmp;
+        Thread* thread = L2->RemoveFront();
+        DEBUG(dbgZ, "[B] Tick ["<< kernel->stats->totalTicks <<"]: Thread [" << thread->getID() << "] is removed from queue L[2]");
+        return thread;
     } else if (!readyList->IsEmpty()) {
-        return readyList->RemoveFront();
+        Thread* thread = readyList->RemoveFront();
+        DEBUG(dbgZ, "[B] Tick ["<< kernel->stats->totalTicks <<"]: Thread [" << thread->getID() << "] is removed from queue L[3]");
+        return thread;
     } else {
         return NULL;
     }
@@ -178,7 +185,22 @@ void Scheduler::Run(Thread *nextThread, bool finishing) {
     // in switch.s.  You may have to think
     // a bit to figure out what happens after this, both from the point
     // of view of the thread and from the perspective of the "outside world".
+    
+    //double execTime = (oldThread->burstTime <= 0.00001) ? oldThread->lastBurstTime : oldThread->burstTime;
+    double execTime = 0;
+    if ((oldThread->burstTime-0.0) <= 0.00001) {
+        execTime = oldThread->lastBurstTime;
+        //std::cout << "-->sleep" << std::endl;
+    } else {
+        execTime = oldThread->burstTime;
+        //std::cout << "<--yield" << std::endl;
+    }
+    DEBUG(dbgZ, "[E] Tick ["<< kernel->stats->totalTicks <<"]: Thread ["<< nextThread->getID() 
+    <<"] is now selected for execution, thread ["<< oldThread->getID() 
+    <<"] is replaced, and it has executed ["<< execTime << "] ticks");
+    
     nextThread->initialTick = kernel->stats->totalTicks;
+
     SWITCH(oldThread, nextThread);
     //oldThread->initialTick = kernel->stats->totalTicks;
     // we're back, running oldThread

@@ -67,6 +67,7 @@ Thread::Thread(char *threadName, int threadID, int priority_) {
     burstTime = 0.0;
     predictTime = 500.0;
     remainingBurstTime = 0.0;
+    lastBurstTime = 0.0;
 
 }
 
@@ -230,13 +231,6 @@ void Thread::Yield() {
     if (this->priority >= 100 && this->priority <= 149) {
         RecalculateBurstTime_Yield();
         remainingBurstTime = predictTime - burstTime;
-        // std::cout << "-->predictTime = " << predictTime << std::endl;
-        // std::cout << "-->burstTime = " << burstTime << std::endl;
-        // std::cout << "-->initialTick = " << initialTick << std::endl;
-        // std::cout << "-->remainingBurstTime = " << remainingBurstTime << std::endl;
-        // if (remainingBurstTime < 0) {
-        //     std::cout << "remainingBurstTime < 0.0" << std::endl;
-        // }
         kernel->scheduler->ReadyToRun(this);
         nextThread = kernel->scheduler->FindNextToRun();
         if (nextThread != NULL) {
@@ -284,12 +278,17 @@ void Thread::Sleep(bool finishing) {
 
     status = BLOCKED;
 
+    // update approximate burst time
     RecalculateBurstTime_Sleep();
-    calculatePredictTime(); 
+    double newPredictTime = (double)(predictTime/2) + (double)(burstTime/2);
+    DEBUG(dbgZ, "[D] Tick ["<< kernel->stats->totalTicks <<"]: Thread [" << this->ID 
+    << "] update approximate burst time, from: ["<< predictTime <<"], add ["<< burstTime <<"], to ["<< newPredictTime <<"]");
+    predictTime = newPredictTime;
     remainingBurstTime = predictTime;
+    lastBurstTime = burstTime;
     burstTime = 0.0;
+    // end 
 
-    // cout << "debug Thread::Sleep " << name << "wait for Idle\n";
     while ((nextThread = kernel->scheduler->FindNextToRun()) == NULL) {
         kernel->interrupt->Idle();  // no one to run, wait for an interrupt
     }
