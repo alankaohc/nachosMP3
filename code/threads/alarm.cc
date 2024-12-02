@@ -61,9 +61,9 @@ void Alarm::CallBack() {
                     ASSERT(thread->priority >= 0 && thread->priority <= 149);
                     // L3
                     if (thread->priority >= 0 && thread->priority <= 49) {
-                        std::cout << "-->Thread: " << thread->getID() << ", waitTime: " << thread->waitTime << std::endl;
+                        //std::cout << "-->Thread: " << thread->getID() << ", waitTime: " << thread->waitTime << std::endl;
                         thread->priority += aging;
-                        std::cout << "-->prioity: " << thread->priority << std::endl;
+                        //std::cout << "-->prioity: " << thread->priority << std::endl;
                         DEBUG(dbgZ, "[C] Tick ["<< kernel->stats->totalTicks <<"]: Thread [" << thread->getID() 
                                 << "] changes its priority from ["<< thread->priority-aging <<"] to ["<< thread->priority <<"]");
                         if (thread->priority >= 50 && thread->priority <= 99) {
@@ -74,7 +74,7 @@ void Alarm::CallBack() {
                                 kernel->scheduler->L2->Insert(thread);
                                 DEBUG(dbgZ, "[A] Tick ["<< kernel->stats->totalTicks <<"]: Thread [" << thread->getID() << "] is inserted into queue L[2]");
                                 
-                                std::cout << "-->L3->L2" << std::endl;
+                                //std::cout << "-->L3->L2" << std::endl;
                                 
                             } else {
                                 //std::cout << "-->list error" << std::endl;
@@ -84,9 +84,9 @@ void Alarm::CallBack() {
                     }
                     //L2
                     if (thread->priority >= 50 && thread->priority <= 99) {
-                        std::cout << "-->Thread: " << thread->getID() << ", waitTime: " << thread->waitTime << std::endl;
+                        //std::cout << "-->Thread: " << thread->getID() << ", waitTime: " << thread->waitTime << std::endl;
                         thread->priority += aging;
-                        std::cout << "-->prioity: " << thread->priority << std::endl;
+                        //std::cout << "-->prioity: " << thread->priority << std::endl;
                         DEBUG(dbgZ, "[C] Tick ["<< kernel->stats->totalTicks <<"]: Thread [" << thread->getID() 
                                 << "] changes its priority from ["<< thread->priority-aging <<"] to ["<< thread->priority <<"]");
                         if (thread->priority >= 100 && thread->priority <= 149) {
@@ -96,7 +96,7 @@ void Alarm::CallBack() {
                                 DEBUG(dbgZ, "[B] Tick ["<< kernel->stats->totalTicks <<"]: Thread [" << thread->getID() << "] is removed from queue L[2]");
                                 kernel->scheduler->L1->Insert(thread);
                                 DEBUG(dbgZ, "[A] Tick ["<< kernel->stats->totalTicks <<"]: Thread [" << thread->getID() << "] is inserted into queue L[1]");
-                                std::cout << "-->L2->L1" << std::endl;
+                                //std::cout << "-->L2->L1" << std::endl;
                             } else {
                                 //std::cout << "-->list error" << std::endl;
                             }  
@@ -105,10 +105,10 @@ void Alarm::CallBack() {
                     }
                     //L1
                     if (thread->priority >= 100 && thread->priority <= 149) {
-                        std::cout << "-->Thread: " << thread->getID() << ", waitTime: " << thread->waitTime << std::endl;
+                        //std::cout << "-->Thread: " << thread->getID() << ", waitTime: " << thread->waitTime << std::endl;
                         if ( (thread->priority+aging) <= 149 ) {
                             thread->priority += aging;
-                            std::cout << "-->prioity: " << thread->priority << std::endl;
+                            //std::cout << "-->prioity: " << thread->priority << std::endl;
                             DEBUG(dbgZ, "[C] Tick ["<< kernel->stats->totalTicks <<"]: Thread [" << thread->getID() 
                                 << "] changes its priority from ["<< thread->priority-aging <<"] to ["<< thread->priority <<"]");
                         } 

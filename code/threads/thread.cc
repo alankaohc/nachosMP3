@@ -63,7 +63,7 @@ Thread::Thread(char *threadName, int threadID, int priority_) {
     }
     space = NULL;
     priority = priority_;
-    initialTick = 0.0;
+    startTick = 0.0;
     burstTime = 0.0;
     predictTime = 500.0;
     remainingBurstTime = 0.0;
@@ -231,8 +231,12 @@ void Thread::Yield() {
     
     // L1 : We should put current thread into queue, in order to compare with thread in queue.
     if (this->priority >= 100 && this->priority <= 149) {
-        RecalculateBurstTime_Yield();
+        // burst time (T)
+        double advanceTick = (double)(kernel->stats->totalTicks - startTick);
+        burstTime += advanceTick;
+        // remaining burst time (t_i - T)
         remainingBurstTime = predictTime - burstTime;
+        // put current thread into queue
         kernel->scheduler->ReadyToRun(this);
         nextThread = kernel->scheduler->FindNextToRun();
         if (nextThread != NULL) {
@@ -280,16 +284,19 @@ void Thread::Sleep(bool finishing) {
 
     status = BLOCKED;
 
-    // update approximate burst time
-    RecalculateBurstTime_Sleep();
+    // burst time (T)
+    double advanceTick = (double)(kernel->stats->totalTicks - startTick);
+    burstTime += advanceTick;
+
+    // predict burst time (t_i)
     double newPredictTime = (double)(predictTime/2) + (double)(burstTime/2);
     DEBUG(dbgZ, "[D] Tick ["<< kernel->stats->totalTicks <<"]: Thread [" << this->ID 
     << "] update approximate burst time, from: ["<< predictTime <<"], add ["<< burstTime <<"], to ["<< newPredictTime <<"]");
     predictTime = newPredictTime;
     remainingBurstTime = predictTime;
-    lastBurstTime = burstTime;
+    lastBurstTime = burstTime; // only used for debug [E]
     burstTime = 0.0;
-    // end 
+    
 
     while ((nextThread = kernel->scheduler->FindNextToRun()) == NULL) {
         kernel->interrupt->Idle();  // no one to run, wait for an interrupt
@@ -468,28 +475,5 @@ void Thread::SelfTest() {
 }
 
 
-// When Thread::Sleep(), running -> waiting
-void Thread::calculatePredictTime() {
-    double newPredictTime = (double)(predictTime/2) + (double)(burstTime/2);
-    //DEBUG(dbgExpr, "[D] Tick ["<< kernel->stats->totalTicks <<"]: Thread [" << ID << "] update approximate burst time, from: ["<< predictTime <<"], add ["<< burstTime <<"], to ["<< newPredictTime <<"]");
-    predictTime = newPredictTime;
-    //std::cout << "[" << this->getID() << "]" <<  " predictTime: " << predictTime << std::endl;
-    //lastExecTime = burstTime;
-    //burstTime = 0.0;
-}
 
-// When Thread::Sleep(), running -> waiting
-void Thread::RecalculateBurstTime_Sleep() {
-    double advanceTick = (double)(kernel->stats->totalTicks - initialTick);
-    //std::cout << "-->advances tick: " << advanceTick << std::endl;
-    burstTime += advanceTick;
-    //std::cout << "-->sleep burstTime: " << burstTime << std::endl;
-}
 
-// When Thread::Yield(), running -> ready
-void Thread::RecalculateBurstTime_Yield() {
-    double advanceTick = (double)(kernel->stats->totalTicks - initialTick);
-    //std::cout << "-->advances tick: " << advanceTick << std::endl;
-    burstTime += advanceTick;
-    //std::cout << "-->yield burstTime: " << burstTime << std::endl;
-}

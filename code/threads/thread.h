@@ -140,16 +140,14 @@ class Thread {
     // 新加的
    public:
     int priority;
-    double initialTick;
+    double startTick;
     double burstTime;
     double predictTime;
     double remainingBurstTime;
     double lastBurstTime;
     double startWaitTime;
     double waitTime;
-    void calculatePredictTime();
-    void RecalculateBurstTime_Sleep();
-    void RecalculateBurstTime_Yield();
+
     
 };
 

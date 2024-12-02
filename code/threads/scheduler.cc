@@ -200,10 +200,9 @@ void Scheduler::Run(Thread *nextThread, bool finishing) {
     <<"] is now selected for execution, thread ["<< oldThread->getID() 
     <<"] is replaced, and it has executed ["<< execTime << "] ticks");
 
-    nextThread->initialTick = kernel->stats->totalTicks;
+    nextThread->startTick = kernel->stats->totalTicks;
     nextThread->waitTime = 0.0;
     SWITCH(oldThread, nextThread);
-    //oldThread->initialTick = kernel->stats->totalTicks;
     // we're back, running oldThread
 
     // interrupts are off when we return from switch!
