@@ -224,11 +224,8 @@ void Thread::Finish() {
 void Thread::Yield() {
     Thread *nextThread;
     IntStatus oldLevel = kernel->interrupt->SetLevel(IntOff);
-
     ASSERT(this == kernel->currentThread);
-
     DEBUG(dbgThread, "Yielding thread: " << name);
-    
     // L1 : We should put current thread into queue, in order to compare with thread in queue.
     if (this->priority >= 100 && this->priority <= 149) {
         // burst time (T)
@@ -287,7 +284,6 @@ void Thread::Sleep(bool finishing) {
     // burst time (T)
     double advanceTick = (double)(kernel->stats->totalTicks - startTick);
     burstTime += advanceTick;
-
     // predict burst time (t_i)
     double newPredictTime = (double)(predictTime/2) + (double)(burstTime/2);
     DEBUG(dbgZ, "[D] Tick ["<< kernel->stats->totalTicks <<"]: Thread [" << this->ID 

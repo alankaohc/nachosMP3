@@ -46,12 +46,11 @@ Alarm::Alarm(bool doRandom) {
 void Alarm::CallBack() {
     Interrupt *interrupt = kernel->interrupt;
     MachineStatus status = interrupt->getStatus();
-    int aging = 10;
-    int maxWaitTime = 1500;
     
     if (status != IdleMode) {
-        
-        
+        // aging 
+        #pragma region
+        int aging = 10; int maxWaitTime = 1500;
         for (int i=0; i<10; i++) {
             Thread* thread = kernel->getThread(i);
             if (thread != NULL && thread->getStatus() == READY) {
@@ -118,20 +117,20 @@ void Alarm::CallBack() {
                 } 
             }
         }
-
-
+        #pragma endregion
+       
+        // L1: preemptive->YieldOnReturn(), L3: time expired->YieldOnReturn()
         ASSERT(kernel->currentThread->priority >= 0 && kernel->currentThread->priority <= 149);
         if (kernel->currentThread->priority >= 0 && kernel->currentThread->priority <= 49) {
             // L3
-            //std::cout << "priority L3" << std::endl;
             interrupt->YieldOnReturn();
         } else if (kernel->currentThread->priority >= 50 && kernel->currentThread->priority <= 99) {
             // L2
-            //std::cout << "priority L2" << std::endl;
-            //interrupt->YieldOnReturn();
+            if (!kernel->scheduler->L1->IsEmpty()) {
+                interrupt->YieldOnReturn();
+            }
         } else if (kernel->currentThread->priority >= 100 && kernel->currentThread->priority <= 149) {
             // L1
-            //std::cout << "priority L1" << std::endl;
             interrupt->YieldOnReturn();
         } 
     }
