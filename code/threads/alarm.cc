@@ -50,13 +50,16 @@ void Alarm::CallBack() {
     int maxWaitTime = 1500;
     
     if (status != IdleMode) {
-        //DEBUG(dbgTraCode, "-->alarm callback()");
+        
+        
         for (int i=0; i<10; i++) {
             Thread* thread = kernel->getThread(i);
             if (thread != NULL && thread->getStatus() == READY) {
                 thread->waitTime = kernel->stats->totalTicks - thread->startWaitTime;
                 if (thread->waitTime >= maxWaitTime) {
                     thread->startWaitTime = kernel->stats->totalTicks;
+                    ASSERT(thread->priority >= 0 && thread->priority <= 149);
+                    // L3
                     if (thread->priority >= 0 && thread->priority <= 49) {
                         std::cout << "-->Thread: " << thread->getID() << ", waitTime: " << thread->waitTime << std::endl;
                         thread->priority += aging;
@@ -65,8 +68,8 @@ void Alarm::CallBack() {
                                 << "] changes its priority from ["<< thread->priority-aging <<"] to ["<< thread->priority <<"]");
                         if (thread->priority >= 50 && thread->priority <= 99) {
                             // L3 -> L2
-                            if (kernel->scheduler->readyList->IsInList(thread)) {
-                                kernel->scheduler->readyList->Remove(thread);
+                            if (kernel->scheduler->L3->IsInList(thread)) {
+                                kernel->scheduler->L3->Remove(thread);
                                 DEBUG(dbgZ, "[B] Tick ["<< kernel->stats->totalTicks <<"]: Thread [" << thread->getID() << "] is removed from queue L[3]");
                                 kernel->scheduler->L2->Insert(thread);
                                 DEBUG(dbgZ, "[A] Tick ["<< kernel->stats->totalTicks <<"]: Thread [" << thread->getID() << "] is inserted into queue L[2]");
@@ -74,11 +77,12 @@ void Alarm::CallBack() {
                                 std::cout << "-->L3->L2" << std::endl;
                                 
                             } else {
-                                std::cout << "-->list error" << std::endl;
+                                //std::cout << "-->list error" << std::endl;
                             }  
                         } 
                         // nothing happen
                     }
+                    //L2
                     if (thread->priority >= 50 && thread->priority <= 99) {
                         std::cout << "-->Thread: " << thread->getID() << ", waitTime: " << thread->waitTime << std::endl;
                         thread->priority += aging;
@@ -94,15 +98,29 @@ void Alarm::CallBack() {
                                 DEBUG(dbgZ, "[A] Tick ["<< kernel->stats->totalTicks <<"]: Thread [" << thread->getID() << "] is inserted into queue L[1]");
                                 std::cout << "-->L2->L1" << std::endl;
                             } else {
-                                std::cout << "-->list error" << std::endl;
+                                //std::cout << "-->list error" << std::endl;
                             }  
                         } 
                         // nothing happen
                     }
+                    //L1
+                    if (thread->priority >= 100 && thread->priority <= 149) {
+                        std::cout << "-->Thread: " << thread->getID() << ", waitTime: " << thread->waitTime << std::endl;
+                        if ( (thread->priority+aging) <= 149 ) {
+                            thread->priority += aging;
+                            std::cout << "-->prioity: " << thread->priority << std::endl;
+                            DEBUG(dbgZ, "[C] Tick ["<< kernel->stats->totalTicks <<"]: Thread [" << thread->getID() 
+                                << "] changes its priority from ["<< thread->priority-aging <<"] to ["<< thread->priority <<"]");
+                        } 
+                        // nothing happen
+                    }
+
                 } 
             }
         }
-         
+
+
+        ASSERT(kernel->currentThread->priority >= 0 && kernel->currentThread->priority <= 149);
         if (kernel->currentThread->priority >= 0 && kernel->currentThread->priority <= 49) {
             // L3
             //std::cout << "priority L3" << std::endl;
@@ -115,8 +133,6 @@ void Alarm::CallBack() {
             // L1
             //std::cout << "priority L1" << std::endl;
             interrupt->YieldOnReturn();
-        } else {
-            std::cout << "priority error" << std::endl;
-        }
+        } 
     }
 }

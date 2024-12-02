@@ -55,11 +55,8 @@ Kernel::Kernel(int argc, char **argv) {
             execExit = TRUE;
         } else if (strcmp(argv[i], "-ep") == 0) {
             execfile[++execfileNum] = argv[++i];
-            cout << execfile[execfileNum] << "\n";
             int priority = atoi(argv[++i]);
             execPriority[execfileNum] = priority;
-            cout << "priority: " <<  execPriority[execfileNum] << "\n";
-            
         } else if (strcmp(argv[i], "-ci") == 0) {
             ASSERT(i + 1 < argc);
             consoleIn = argv[i + 1];

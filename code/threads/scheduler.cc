@@ -63,7 +63,7 @@ L1Compare(Thread *x, Thread *y) {
 
 
 Scheduler::Scheduler() {
-    readyList = new List<Thread *>;
+    L3 = new List<Thread *>;
     L2 = new SortedList<Thread *>(L2Compare);
     L1 = new SortedList<Thread *>(L1Compare);
     
@@ -77,7 +77,10 @@ Scheduler::Scheduler() {
 //----------------------------------------------------------------------
 
 Scheduler::~Scheduler() {
-    delete readyList;
+    delete L3;
+    delete L2;
+    delete L1;
+    
 }
 
 //----------------------------------------------------------------------
@@ -91,14 +94,13 @@ Scheduler::~Scheduler() {
 void Scheduler::ReadyToRun(Thread *thread) {
     ASSERT(kernel->interrupt->getLevel() == IntOff);
     DEBUG(dbgThread, "Putting thread on ready list: " << thread->getName());
-    // cout << "Putting thread on ready list: " << thread->getName() << endl ;
     thread->setStatus(READY);
 
     thread->startWaitTime = kernel->stats->totalTicks;
-
+    ASSERT(thread->priority >= 0 && thread->priority <= 149);
     if (thread->priority >= 0 && thread->priority <= 49 ) {
         DEBUG(dbgZ, "[A] Tick ["<< kernel->stats->totalTicks <<"]: Thread [" << thread->getID() << "] is inserted into queue L[3]");
-        readyList->Append(thread);
+        L3->Append(thread);
     }
     else if (thread->priority >= 50 && thread->priority <= 99 ) {
         DEBUG(dbgZ, "[A] Tick ["<< kernel->stats->totalTicks <<"]: Thread [" << thread->getID() << "] is inserted into queue L[2]");
@@ -107,10 +109,7 @@ void Scheduler::ReadyToRun(Thread *thread) {
     else if (thread->priority >= 100 && thread->priority <= 149 ) {
         DEBUG(dbgZ, "[A] Tick ["<< kernel->stats->totalTicks <<"]: Thread [" << thread->getID() << "] is inserted into queue L[1]");
         L1->Insert(thread);
-    } else {
-        std::cout << "ReadyToRun error" << std::endl; 
-    }
-    
+    } 
 }
 
 //----------------------------------------------------------------------
@@ -133,8 +132,8 @@ Scheduler::FindNextToRun() {
         Thread* thread = L2->RemoveFront();
         DEBUG(dbgZ, "[B] Tick ["<< kernel->stats->totalTicks <<"]: Thread [" << thread->getID() << "] is removed from queue L[2]");
         return thread;
-    } else if (!readyList->IsEmpty()) {
-        Thread* thread = readyList->RemoveFront();
+    } else if (!L3->IsEmpty()) {
+        Thread* thread = L3->RemoveFront();
         DEBUG(dbgZ, "[B] Tick ["<< kernel->stats->totalTicks <<"]: Thread [" << thread->getID() << "] is removed from queue L[3]");
         return thread;
     } else {
@@ -244,5 +243,5 @@ void Scheduler::CheckToBeDestroyed() {
 //----------------------------------------------------------------------
 void Scheduler::Print() {
     cout << "Ready list contents:\n";
-    readyList->Apply(ThreadPrint);
+    L3->Apply(ThreadPrint);
 }
